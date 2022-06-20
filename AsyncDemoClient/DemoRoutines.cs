@@ -9,16 +9,22 @@ namespace AsyncDemoClient
     {
         private readonly IAsyncDemoClient _client;
 
-        private const int NUMBER_OF_CONCURRENT_REQUESTS = 10;
+        private const int DEFAULT_NUMBER_OF_CONCURRENT_REQUESTS = 10;
+        private const int MAX_NUMBER_OF_CONCURRENT_REQUESTS = 100;
 
         public DemoRoutines(IAsyncDemoClient client)
         {
             _client = client;
         }
 
-        public async Task AsyncDemo(int numberOfRequests = NUMBER_OF_CONCURRENT_REQUESTS)
+        public async Task CallAsyncEndpointAsync(int numberOfRequests = DEFAULT_NUMBER_OF_CONCURRENT_REQUESTS)
         {
-            Console.WriteLine("Running async calls demo");
+            if (!ValidateNumberOfRequests(numberOfRequests))
+            {
+                return;
+            }
+
+            Console.WriteLine($"[ASYNC] Running {numberOfRequests} requests in parallel.");
 
             var sw = Stopwatch.StartNew();
 
@@ -37,9 +43,14 @@ namespace AsyncDemoClient
             Console.WriteLine($@"Client spent {sw.Elapsed:mm\:ss\.ff} to complete {numberOfRequests} ASYNC requests");
         }
 
-        public async Task SyncDemo(int numberOfRequests = NUMBER_OF_CONCURRENT_REQUESTS)
+        public async Task CallSyncEndpointAsync(int numberOfRequests = DEFAULT_NUMBER_OF_CONCURRENT_REQUESTS)
         {
-            Console.WriteLine("Running sync calls demo");
+            if (!ValidateNumberOfRequests(numberOfRequests))
+            {
+                return;
+            }
+
+            Console.WriteLine($"[SYNC] Running {numberOfRequests} requests in parallel.");
 
             var sw = Stopwatch.StartNew();
 
@@ -87,6 +98,23 @@ namespace AsyncDemoClient
             sw.Stop();
 
             Console.WriteLine($@"ASYNC api call took {sw.Elapsed:ss\.ff} to complete and used {result.PrivateMemory / 1000000} megabytes of RAM ({result.NumberOfThreads} threads).");
+        }
+
+        private static bool ValidateNumberOfRequests(int numberOfRequests)
+        {
+            if (numberOfRequests > MAX_NUMBER_OF_CONCURRENT_REQUESTS)
+            {
+                Console.WriteLine("Too many requests to run in parallel. Max number is 1000. Please try again.");
+                return false;
+            }
+
+            if (numberOfRequests < 1)
+            {
+                Console.WriteLine("Number of requests should be greater than 0. Please try again.");
+                return false;
+            }
+
+            return true;
         }
 
         #endregion

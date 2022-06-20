@@ -7,7 +7,7 @@ namespace AsyncDemoClient
 {
     public static class Program
     {
-        static async Task Main(string[] args)
+        public static async Task Main()
         {
             var client = RestClient.For<IAsyncDemoClient>("https://localhost:8081");
 
@@ -25,25 +25,34 @@ namespace AsyncDemoClient
                     return;
                 }
 
-                Console.Write("Type the number of requetss: ");
-                var numberOfRequests = int.Parse(Console.ReadLine());
-
-                switch (pressedKey.Key)
+                if (pressedKey.Key != ConsoleKey.A && pressedKey.Key != ConsoleKey.S)
                 {
-                    case ConsoleKey.A:
-                        await demoRoutines.AsyncDemo(numberOfRequests);
-                        break;
-
-                    case ConsoleKey.S:
-                        await demoRoutines.SyncDemo(numberOfRequests);
-                        break;
-
-                    default:
-                        break;
+                    Console.Clear();
+                    continue;
                 }
 
-                Console.WriteLine("Press ENTER to continue...");
-                Console.ReadLine();
+                Console.Write("Type the number of requests: ");
+
+                if (int.TryParse(Console.ReadLine(), out var numberOfRequests))
+                {
+                    switch (pressedKey.Key)
+                    {
+                        case ConsoleKey.A:
+                            await demoRoutines.CallAsyncEndpointAsync(numberOfRequests);
+                            break;
+
+                        case ConsoleKey.S:
+                            await demoRoutines.CallSyncEndpointAsync(numberOfRequests);
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                    Console.WriteLine("Press ENTER to continue...");
+                    Console.ReadLine();
+                }
+                
                 Console.Clear();
             } 
         }

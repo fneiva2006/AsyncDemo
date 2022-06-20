@@ -1,10 +1,9 @@
-﻿using AsyncDemo.Models;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
+
+using AsyncDemo.Models;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-
-using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace AsyncDemo.Controllers
 {
@@ -12,34 +11,35 @@ namespace AsyncDemo.Controllers
     [Route("[controller]")]
     public class DemoController : ControllerBase
     {
-        private readonly ILogger<DemoController> _logger;
+        private const int LONG_OPERATION_DELAY_MS = 5_000;
 
-        private const int LONG_OPERATION_DELAY_MS = 5000;
-
-        public DemoController(ILogger<DemoController> logger)
-        {
-            _logger = logger;
-        }
-
+        /// <summary>
+        /// [Sync Endpoint] Returns information of the process in which the server application is running.
+        /// </summary>
+        /// <returns>IActionResult interface that holds the process information payload.</returns>
         [HttpGet]
         public IActionResult Get()
         {
+            // Thread blocked
             Task.Delay(LONG_OPERATION_DELAY_MS).Wait();
+            
             return Ok(GetProcessInfo());
         }
 
+        /// <summary>
+        /// [Async Endpoint] Returns information of the process in which the server application is running.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation. Its result contains an IActionResult interface that holds
+        /// the process information payload.</returns>
         [HttpGet("async")]
-        public async Task GetAsync()
+        public async Task<IActionResult> GetAsync()
         {
+            // Thread not blocked since delay is awaited in an async Task
             await Task.Delay(LONG_OPERATION_DELAY_MS);
+
+            return Ok(GetProcessInfo());
         }
 
-        private async Task<int> TestFunctionAsync()
-        {
-            await Task.Delay(LONG_OPERATION_DELAY_MS);
-            return 5;
-        }
-        
         private static ProcessInfo GetProcessInfo()
         {
             var process = Process.GetCurrentProcess();
